@@ -2,48 +2,55 @@ pipeline {
     agent any
 
     environment {
-        APACHE_SERVER_IP = '51.20.255.188'  // Replace with your Apache server's IP
-        SSH_CREDENTIAL_ID = 'apache'  // Replace with your Jenkins SSH Credential ID
-        DEPLOY_PATH = '/var/www/html/'  // Apache's default document root
+        APACHE_SERVER_IP = '13.60.60.152'  // Apache server's IP
+        SSH_CREDENTIAL_ID = 'apache'       // Jenkins SSH Credential ID
+        DEPLOY_PATH = '/var/www/html/'     // Apache's default document root
+        LOCAL_FILE = 'Hello.html'          // The file to deploy
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Setup SSH Known Hosts') {
             steps {
-                // Checkout the code from GitHub
-                git branch: 'main', url: 'https://github.com/Ishaswork123/p1.git'
+                sshagent(["${SSH_CREDENTIAL_ID}"]) {
+                    script {
+                        echo "Adding ${APACHE_SERVER_IP} to known_hosts..."
+                        sh "ssh-keyscan -H ${APACHE_SERVER_IP} >> ~/.ssh/known_hosts"
+                    }
+                }
             }
         }
 
-        stage('Deploy to Apache Server') {
+        stage('Deploy HTML to Apache Server') {
             steps {
-                // Use SSH to copy the file to the Apache server
-                sshPublisher(
-                    publishers: [
-                        sshPublisherDesc(
-                            configName: 'Apache Server',
-                            transfers: [
-                                sshTransfer(
-                                    sourceFiles: 'index.html',
-                                    remoteDirectory: "${DEPLOY_PATH}"
-                                )
-                            ],
-                            usePromotionTimestamp: false,
-                            useWorkspaceInPromotion: false,
-                            verbose: true
-                        )
-                    ]
-                )
+                sshagent(["${SSH_CREDENTIAL_ID}"]) {
+                    script {
+                        echo "Deploying ${LOCAL_FILE} to ${APACHE_SERVER_IP}..."
+
+                        // Copy the file to the Apache server's document root
+                        sh "scp ${LOCAL_FILE} ubuntu@${APACHE_SERVER_IP}:${DEPLOY_PATH}${LOCAL_FILE}"
+                    }
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                script {
+                    echo "Verifying deployment of ${LOCAL_FILE} on remote server..."
+
+                    // Verify the file is served correctly
+                    sh "curl http://${APACHE_SERVER_IP}/${LOCAL_FILE}"
+                }
             }
         }
     }
 
     post {
         success {
-            echo 'Deployment successful!'
+            echo 'Deployment completed successfully!'
         }
         failure {
-            echo 'Deployment failed.'
+            echo 'Deployment failed. Check the logs for more details.'
         }
     }
 }
