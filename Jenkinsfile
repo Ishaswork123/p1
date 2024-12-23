@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        APACHE_SERVER_IP = '51.20.255.188'  // Replace with your Apache server's IP
+        APACHE_SERVER_IP = '13.60.60.152'  // Replace with your Apache server's IP
         SSH_CREDENTIAL_ID = 'apache'  // Replace with your Jenkins SSH Credential ID
         DEPLOY_PATH = '/var/www/html/'  // Apache's default document root
     }
