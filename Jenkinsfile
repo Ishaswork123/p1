@@ -1,46 +1,56 @@
 pipeline {
     agent any
+
     environment {
-        SERVER_USER = 'ubuntu' // Corrected typo from 'ubunbu'
-        SERVER_IP = '13.49.77.34'
-        TARGET_DIR = '/var/www/html'
+        APACHE_SERVER_IP = '13.49.77.34'  // Apache server's IP
+        SSH_CREDENTIAL_ID = 'apache'       // Jenkins SSH Credential ID
+        DEPLOY_PATH = '/var/www/html/'     // Apache's default document root
+        LOCAL_FILE = 'Hello.html'          // The file to deploy
     }
+
     stages {
-        stage('Clone Repository') {
+        stage('Setup SSH Known Hosts') {
             steps {
-                checkout scm
+                sshagent(["${SSH_CREDENTIAL_ID}"]) {
+                    script {
+                        echo "Adding ${APACHE_SERVER_IP} to known_hosts..."
+                        sh "ssh-keyscan -H ${APACHE_SERVER_IP} >> ~/.ssh/known_hosts"
+                    }
+                }
             }
         }
-        stage('Build') {
+
+        stage('Deploy HTML to Apache Server') {
             steps {
-                echo 'Building...'
-                // Replace with actual build commands if needed.
+                sshagent(["${SSH_CREDENTIAL_ID}"]) {
+                    script {
+                        echo "Deploying ${LOCAL_FILE} to ${APACHE_SERVER_IP}..."
+
+                        // Copy the file to the Apache server's document root
+                        sh "scp ${LOCAL_FILE} ubuntu@${APACHE_SERVER_IP}:${DEPLOY_PATH}${LOCAL_FILE}"
+                    }
+                }
             }
         }
-        stage('Deploy to Apache Server') {
+
+        stage('Verify Deployment') {
             steps {
-                // Use SSH credentials with ID 'keyForApache'
-                sshagent(['keyForApache']) {
-                    sh '''
-                    # Clean up target directory on the server
-                    ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} "rm -rf ${TARGET_DIR}/*"
-                    
-                    # Copy files to the server
-                    scp -o StrictHostKeyChecking=no -r * ${SERVER_USER}@${SERVER_IP}:${TARGET_DIR}
-                    
-                    # Restart Apache
-                    ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_IP} "sudo systemctl restart apache2"
-                    '''
+                script {
+                    echo "Verifying deployment of ${LOCAL_FILE} on remote server..."
+
+                    // Verify the file is served correctly
+                    sh "curl http://${APACHE_SERVER_IP}/${LOCAL_FILE}"
                 }
             }
         }
     }
+
     post {
         success {
-            echo 'Deployment Successful!'
+            echo 'Deployment completed successfully!'
         }
         failure {
-            echo 'Deployment Failed!'
+            echo 'Deployment failed. Check the logs for more details.'
         }
     }
 }
