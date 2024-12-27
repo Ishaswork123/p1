@@ -1,11 +1,11 @@
-pipeline {
+/.pipeline {
     agent any
 
     environment {
         APACHE_SERVER_IP = '16.16.215.148'  // Apache server's IP
         SSH_CREDENTIAL_ID = 'apache'       // Jenkins SSH Credential ID
         DEPLOY_PATH = '/var/www/html/'     // Apache's default document root
-        LOCAL_FILES = 'Hello.html home.html adBook.html' // Files to deploy
+        LOCAL_FILES = 'Hello.html home.html addBook.html' // Files to deploy
     }
 
     stages {
