@@ -1,17 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
-
-
-  
+    <title>Home page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eef2f3;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h3 {
+            font-size: 28px;
+            color: #333;
+        }
+        h4 {
+            font-size: 20px;
+            color: #666;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
 <body>
- 
-                      <h3>Physics-Verse(Physics Virtual Lab)</h3>
-  <h4>Isha Eman</h4>
-  
-               
+    <h1 style="text-align: center;">Welcome to Library Managment system</h3>
+    <h4 style="text-align: center;">Isha Eman</h4>
+    <button onclick="navigateToHome()">View Details</button>
+
+    <script>
+        function navigateToHome() {
+            window.location.href = "index.html";
+        }
+    </script>
 </body>
 </html>
