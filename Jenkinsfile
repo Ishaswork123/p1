@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        APACHE_SERVER_IP = '13.49.77.34'  // Apache server's IP
+        APACHE_SERVER_IP = '16.16.215.148'  // Apache server's IP
         SSH_CREDENTIAL_ID = 'apache'       // Jenkins SSH Credential ID
         DEPLOY_PATH = '/var/www/html/'     // Apache's default document root
         LOCAL_FILE = 'Hello.html'          // The file to deploy
