@@ -5,10 +5,19 @@ pipeline {
         APACHE_SERVER_IP = '16.16.215.148'  // Apache server's IP
         SSH_CREDENTIAL_ID = 'apache'       // Jenkins SSH Credential ID
         DEPLOY_PATH = '/var/www/html/'     // Apache's default document root
-        LOCAL_FILES = 'Hello.html home.html addBook.html' // Files to deploy
     }
 
     stages {
+        stage('Clone Repository') {
+            steps {
+                script {
+                    echo "Cloning repository..."
+                    // Clone the GitHub repository
+                    checkout scm
+                }
+            }
+        }
+
         stage('Setup SSH Known Hosts') {
             steps {
                 sshagent(["${SSH_CREDENTIAL_ID}"]) {
@@ -26,8 +35,8 @@ pipeline {
                     script {
                         echo "Deploying files to ${APACHE_SERVER_IP}..."
 
-                        // Copy all files to the Apache server's document root
-                        sh "scp ${LOCAL_FILES} ubuntu@${APACHE_SERVER_IP}:${DEPLOY_PATH}"
+                        // Copy all files in the repository to the Apache server
+                        sh "scp *.html ubuntu@${APACHE_SERVER_IP}:${DEPLOY_PATH}"
                     }
                 }
             }
@@ -38,11 +47,8 @@ pipeline {
                 script {
                     echo "Verifying deployment of files on remote server..."
 
-                    // Verify each file is served correctly
-                    LOCAL_FILES.split(' ').each { file ->
-                        echo "Verifying ${file}..."
-                        sh "curl http://${APACHE_SERVER_IP}/${file}"
-                    }
+                    // Verify each HTML file in the repository
+                    sh "ls *.html | xargs -I {} curl http://${APACHE_SERVER_IP}/{}"
                 }
             }
         }
@@ -50,7 +56,7 @@ pipeline {
 
     post {
         success {
-            echo 'Deployment of all files completed successfully!'
+            echo 'Deployment completed successfully after Git commit!'
         }
         failure {
             echo 'Deployment failed. Check the logs for more details.'
