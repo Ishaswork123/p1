@@ -7,6 +7,11 @@ pipeline {
         DEPLOY_PATH = '/var/www/html/'     // Apache's default document root
     }
 
+    triggers {
+        // Trigger the pipeline when a GitHub push event is received
+        githubPush()
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
@@ -36,7 +41,7 @@ pipeline {
                         echo "Deploying files to ${APACHE_SERVER_IP}..."
 
                         // Copy all files in the repository to the Apache server
-                        sh "scp *.html ubuntu@${APACHE_SERVER_IP}:${DEPLOY_PATH}"
+                        sh "scp -r * ubuntu@${APACHE_SERVER_IP}:${DEPLOY_PATH}"
                     }
                 }
             }
@@ -48,7 +53,7 @@ pipeline {
                     echo "Verifying deployment of files on remote server..."
 
                     // Verify each HTML file in the repository
-                    sh "ls *.html | xargs -I {} curl http://${APACHE_SERVER_IP}/{}"
+                    sh "ls *.html | xargs -I {} curl -f http://${APACHE_SERVER_IP}/{}"
                 }
             }
         }
