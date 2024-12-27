@@ -5,7 +5,7 @@ pipeline {
         APACHE_SERVER_IP = '16.16.215.148'  // Apache server's IP
         SSH_CREDENTIAL_ID = 'apache'       // Jenkins SSH Credential ID
         DEPLOY_PATH = '/var/www/html/'     // Apache's default document root
-        LOCAL_FILE = 'Hello.html'          // The file to deploy
+        LOCAL_FILES = 'Hello.html home.html adBook.html' // Files to deploy
     }
 
     stages {
@@ -20,14 +20,14 @@ pipeline {
             }
         }
 
-        stage('Deploy HTML to Apache Server') {
+        stage('Deploy HTML Files to Apache Server') {
             steps {
                 sshagent(["${SSH_CREDENTIAL_ID}"]) {
                     script {
-                        echo "Deploying ${LOCAL_FILE} to ${APACHE_SERVER_IP}..."
+                        echo "Deploying files to ${APACHE_SERVER_IP}..."
 
-                        // Copy the file to the Apache server's document root
-                        sh "scp ${LOCAL_FILE} ubuntu@${APACHE_SERVER_IP}:${DEPLOY_PATH}${LOCAL_FILE}"
+                        // Copy all files to the Apache server's document root
+                        sh "scp ${LOCAL_FILES} ubuntu@${APACHE_SERVER_IP}:${DEPLOY_PATH}"
                     }
                 }
             }
@@ -36,10 +36,13 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 script {
-                    echo "Verifying deployment of ${LOCAL_FILE} on remote server..."
+                    echo "Verifying deployment of files on remote server..."
 
-                    // Verify the file is served correctly
-                    sh "curl http://${APACHE_SERVER_IP}/${LOCAL_FILE}"
+                    // Verify each file is served correctly
+                    LOCAL_FILES.split(' ').each { file ->
+                        echo "Verifying ${file}..."
+                        sh "curl http://${APACHE_SERVER_IP}/${file}"
+                    }
                 }
             }
         }
@@ -47,7 +50,7 @@ pipeline {
 
     post {
         success {
-            echo 'Deployment completed successfully!'
+            echo 'Deployment of all files completed successfully!'
         }
         failure {
             echo 'Deployment failed. Check the logs for more details.'
