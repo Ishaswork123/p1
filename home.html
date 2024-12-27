@@ -1,0 +1,108 @@
+<html>
+<head>
+    <title>Library Management System</title>
+    <style>
+        table {
+            font-family: Arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+        .btn {
+            padding: 5px 10px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .btn.delete { background-color: #f44336; }
+        .btn.issue { background-color: #ff9800; }
+    </style>
+</head>
+<body>
+    <h1>All Books</h1>
+    <table id="booksTable">
+        <tr>
+            <th>Book Name</th>
+            <th>Book Author</th>
+            <th>Book Pages</th>
+            <th>Book Price</th>
+            <th>Book Availability</th>
+            <th>Issue</th>
+            <th>Delete</th>
+        </tr>
+    </table>
+    <button class="btn" onclick="navigateToAddBookPage()">Add Book</button>
+
+    <script>
+        let books = [
+            { bookName: "Rudest Book Ever", bookAuthor: "Shwetabh Gangwar", bookPages: 200, bookPrice: 240, bookState: "Available", issuedTo: "" },
+            { bookName: "Do Epic Shit", bookAuthor: "Ankur Wariko", bookPages: 200, bookPrice: 240, bookState: "Available", issuedTo: "" }
+        ];
+
+        function renderBooks() {
+            const table = document.getElementById("booksTable");
+            table.innerHTML = `<tr>
+                <th>Book Name</th>
+                <th>Book Author</th>
+                <th>Book Pages</th>
+                <th>Book Price</th>
+                <th>Book Availability</th>
+                <th>Issue</th>
+                <th>Delete</th>
+            </tr>`;
+
+            books.forEach((book, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${book.bookName}</td>
+                    <td>${book.bookAuthor}</td>
+                    <td>${book.bookPages}</td>
+                    <td>${book.bookPrice}</td>
+                    <td>${book.bookState}${book.issuedTo ? ` (Issued to: ${book.issuedTo})` : ""}</td>
+                    <td><button class="btn issue" onclick="issueBook(${index})">Issue</button></td>
+                    <td><button class="btn delete" onclick="deleteBook(${index})">Delete</button></td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        function issueBook(index) {
+            if (books[index].bookState === "Available") {
+                const personName = prompt("Enter the name of the person to issue the book to:");
+                if (personName) {
+                    books[index].bookState = "Issued";
+                    books[index].issuedTo = personName;
+                    renderBooks();
+                }
+            } else {
+                alert("This book is already issued.");
+            }
+        }
+
+        function deleteBook(index) {
+            books.splice(index, 1);
+            renderBooks();
+        }
+
+        function navigateToAddBookPage() {
+            localStorage.setItem("books", JSON.stringify(books));
+            window.location.href = "addBook.html";
+        }
+
+        window.onload = function () {
+            const storedBooks = localStorage.getItem("books");
+            if (storedBooks) books = JSON.parse(storedBooks);
+            renderBooks();
+        };
+    </script>
+</body>
+</html>
